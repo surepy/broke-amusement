@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:broke_amusement/add_coin_button.dart';
+import 'package:broke_amusement/read_card_button.dart';
+import 'package:broke_amusement/service_area.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -22,6 +23,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  // _hostnamecontroller.text
   final TextEditingController _hostnamecontroller = TextEditingController(
     text: "cadence.in.faca.dev",
   );
@@ -66,12 +68,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     // read card button
                     Padding(
                       padding: EdgeInsetsGeometry.only(bottom: 12),
-                      child: ReadCardButton(),
+                      child: ReadCardButton(hostUrl: _hostnamecontroller.text),
                     ),
                     // Coin
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: AddCoinButton(),
+                      child: AddCoinButton(hostUrl: _hostnamecontroller.text),
                     ),
                     // Hostname
                     Padding(
@@ -103,186 +105,6 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Numpad',
         child: const Icon(Icons.numbers),
       ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
-  }
-}
-
-class ReadCardButton extends StatelessWidget {
-  const ReadCardButton({super.key});
-
-  void cardscan() async {
-    var availability = await FlutterNfcKit.nfcAvailability;
-    if (availability != NFCAvailability.available) {
-      print("you are not sigma!");
-      return;
-    }
-
-    print("card scan start");
-
-    try {
-      var tag = await FlutterNfcKit.poll(readIso18092: true);
-
-      print(jsonEncode(tag));
-
-      if (tag.type == NFCTagType.iso7816) {
-        // idk what to do with this
-      }
-      if (tag.type == NFCTagType.mifare_classic) {
-        // option to virtualize a card?
-        await FlutterNfcKit.authenticateSector(0, keyA: "FFFFFFFFFFFF");
-        var data = await FlutterNfcKit.readBlock(0); // read one block
-        print(data);
-      }
-      // FeliCa
-      if (tag.type == NFCTagType.iso18092) {
-        // rename variable to a more sensible name
-        var idm = tag.id;
-        var pmm = tag.manufacturer;
-      }
-    } catch (e) {
-      //
-    } finally {
-      // Call finish() only once
-      await FlutterNfcKit.finish();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      style: TextButton.styleFrom(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadiusGeometry.circular(28),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        // fromHeight use double.infinity as width and 40 is the height
-        minimumSize: Size.fromHeight(175),
-      ),
-      onPressed: cardscan,
-      child: Text(
-        "Read Card",
-        style: TextStyle(
-          fontWeight: FontWeight.w400,
-          fontSize: 25,
-          color: Colors.white
-        ),
-      ),
-    );
-  }
-}
-
-class AddCoinButton extends StatelessWidget {
-  const AddCoinButton({super.key});
-
-  void addcoin() async {}
-
-  @override
-  Widget build(BuildContext context) {
-    return TextButton(
-      style: TextButton.styleFrom(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadiusGeometry.circular(28),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-        // fromHeight use double.infinity as width and 40 is the height
-        minimumSize: Size.fromHeight(125),
-      ),
-      onPressed: addcoin,
-      child: Text(
-        "Add Coin",
-        style: TextStyle(
-          fontWeight: FontWeight.w400,
-          fontSize: 18,
-          color: Colors.white
-        ),
-      ),
-    );
-  }
-}
-
-class ServiceArea extends StatefulWidget {
-  const ServiceArea({super.key});
-
-  @override
-  State<StatefulWidget> createState() => _ServiceAreaState();
-}
-
-class _ServiceAreaState extends State<ServiceArea> {
-  bool _unlocked = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: SizedBox(
-            width: double.infinity,
-            child: SwitchListTile(
-              title: const Text('Service Button Unlock'),
-              value: _unlocked,
-              onChanged: (bool value) {
-                setState(() {
-                  _unlocked = value;
-                });
-              },
-            ),
-          ),
-        ),
-        ServiceButtons(unlocked: _unlocked),
-      ],
-    );
-  }
-}
-
-class ServiceButtons extends StatefulWidget {
-  const ServiceButtons({super.key, required this.unlocked});
-
-  final bool unlocked;
-
-  @override
-  State<StatefulWidget> createState() => _ServiceButtonsState();
-}
-
-class _ServiceButtonsState extends State<ServiceButtons> {
-  void serviceButton() async {}
-
-  void testButton() async {}
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      spacing: 5,
-      children: [
-        Expanded(
-          child: TextButton(
-            style: TextButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadiusGeometry.circular(12),
-              ),
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerHighest,
-              minimumSize: Size.fromHeight(42),
-            ),
-            onPressed: widget.unlocked ? serviceButton : null,
-            child: Text("Service"),
-          ),
-        ),
-        Expanded(
-          child: TextButton(
-            style: TextButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadiusGeometry.circular(12),
-              ),
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerHighest,
-              minimumSize: Size.fromHeight(42),
-            ),
-            onPressed: widget.unlocked ? testButton : null,
-            child: Text("Test"),
-          ),
-        ),
-      ],
     );
   }
 }
