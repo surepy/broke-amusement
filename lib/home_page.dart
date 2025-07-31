@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -22,20 +22,94 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  final TextEditingController _hostnamecontroller = TextEditingController(
+    text: "cadence.in.faca.dev",
+  );
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  void _openNumpad() {}
+
+  @override
+  Widget build(BuildContext context) {
+    // This method is rerun every time setState is called, for instance as done
+    // by the _incrementCounter method above.
+    //
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
+    return Scaffold(
+      appBar: AppBar(
+        // TRY THIS: Try changing the color here to a specific color (to
+        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+        // change color while the other colors stay the same.
+        backgroundColor: Colors.white60,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(
+          widget.title,
+          style: TextStyle(
+            fontWeight: FontWeight.w400,
+            fontSize: 18.0, // Adjust the font size here
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(16),
+                child: ListView(
+                  children: [
+                    // read card button
+                    Padding(
+                      padding: EdgeInsetsGeometry.only(bottom: 12),
+                      child: ReadCardButton(),
+                    ),
+                    // Coin
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: AddCoinButton(),
+                    ),
+                    // Hostname
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: TextField(
+                        controller: _hostnamecontroller,
+                        maxLines: 1,
+                        decoration: InputDecoration(
+                          enabledBorder: InputBorder.none,
+                          filled: true,
+                          border: null,
+                          labelText: '"Cabinet" ip / hostname',
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 64),
+                      child: ServiceArea(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openNumpad,
+        tooltip: 'Numpad',
+        child: const Icon(Icons.numbers),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
   }
+}
 
-  // temp function so i can figure out cardscan
+class ReadCardButton extends StatelessWidget {
+  const ReadCardButton({super.key});
+
   void cardscan() async {
     var availability = await FlutterNfcKit.nfcAvailability;
     if (availability != NFCAvailability.available) {
@@ -46,10 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
     print("card scan start");
 
     try {
-      var tag = await FlutterNfcKit.poll(
-        readIso18092: true,
-        timeout: Duration(seconds: 20)
-      );
+      var tag = await FlutterNfcKit.poll(readIso18092: true);
 
       print(jsonEncode(tag));
 
@@ -70,8 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     } catch (e) {
       //
-    }
-    finally {
+    } finally {
       // Call finish() only once
       await FlutterNfcKit.finish();
     }
@@ -79,79 +149,162 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+    return TextButton(
+      style: TextButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadiusGeometry.circular(28),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        // fromHeight use double.infinity as width and 40 is the height
+        minimumSize: Size.fromHeight(175),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-
-          children: <Widget>[
-            const Text('Login'),
-
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-              child: ElevatedButton(
-                onPressed: cardscan,
-                style: ElevatedButton.styleFrom(
-                  // fromHeight use double.infinity as width and 40 is the height
-                  minimumSize: Size.fromHeight(40),
-                ),
-                child: Container(
-                  padding: EdgeInsets.all(15),
-                  child: Text(
-                    'Start Scanning',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                ),
-              ),
-            ),
-
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-              child: KeypadWidget(),
-            ),
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+      onPressed: cardscan,
+      child: Text(
+        "Read Card",
+        style: TextStyle(
+          fontWeight: FontWeight.w400,
+          fontSize: 25,
+          color: Colors.white
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class AddCoinButton extends StatelessWidget {
+  const AddCoinButton({super.key});
+
+  void addcoin() async {}
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      style: TextButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadiusGeometry.circular(28),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        // fromHeight use double.infinity as width and 40 is the height
+        minimumSize: Size.fromHeight(125),
+      ),
+      onPressed: addcoin,
+      child: Text(
+        "Add Coin",
+        style: TextStyle(
+          fontWeight: FontWeight.w400,
+          fontSize: 18,
+          color: Colors.white
+        ),
+      ),
+    );
+  }
+}
+
+class ServiceArea extends StatefulWidget {
+  const ServiceArea({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _ServiceAreaState();
+}
+
+class _ServiceAreaState extends State<ServiceArea> {
+  bool _unlocked = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: SizedBox(
+            width: double.infinity,
+            child: SwitchListTile(
+              title: const Text('Service Button Unlock'),
+              value: _unlocked,
+              onChanged: (bool value) {
+                setState(() {
+                  _unlocked = value;
+                });
+              },
+            ),
+          ),
+        ),
+        ServiceButtons(unlocked: _unlocked),
+      ],
+    );
+  }
+}
+
+class ServiceButtons extends StatefulWidget {
+  const ServiceButtons({super.key, required this.unlocked});
+
+  final bool unlocked;
+
+  @override
+  State<StatefulWidget> createState() => _ServiceButtonsState();
+}
+
+class _ServiceButtonsState extends State<ServiceButtons> {
+  void serviceButton() async {}
+
+  void testButton() async {}
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      spacing: 5,
+      children: [
+        Expanded(
+          child: TextButton(
+            style: TextButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadiusGeometry.circular(12),
+              ),
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+              minimumSize: Size.fromHeight(42),
+            ),
+            onPressed: widget.unlocked ? serviceButton : null,
+            child: Text("Service"),
+          ),
+        ),
+        Expanded(
+          child: TextButton(
+            style: TextButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadiusGeometry.circular(12),
+              ),
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerHighest,
+              minimumSize: Size.fromHeight(42),
+            ),
+            onPressed: widget.unlocked ? testButton : null,
+            child: Text("Test"),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class KeypadButton extends StatelessWidget {
+  const KeypadButton({super.key, required this.numKey});
+
+  final String numKey;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+      child: ElevatedButton(
+        onPressed: () async {},
+        child: Text(
+          style: Theme.of(context).textTheme.displaySmall,
+          numKey,
+          overflow: TextOverflow.fade,
+          softWrap: false,
+        ),
+      ),
     );
   }
 }
@@ -195,28 +348,6 @@ class KeypadWidget extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-class KeypadButton extends StatelessWidget {
-  const KeypadButton({super.key, required this.numKey});
-
-  final String numKey;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-      child: ElevatedButton(
-        onPressed: () async {},
-        child: Text(
-          style: Theme.of(context).textTheme.displaySmall,
-          numKey,
-          overflow: TextOverflow.fade,
-          softWrap: false,
-        ),
-      ),
     );
   }
 }
