@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:typed_data';
 import 'package:broke_amusement/add_coin_button.dart';
 import 'package:broke_amusement/read_card_button.dart';
@@ -27,8 +28,33 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _hostnamecontroller = TextEditingController(
     text: "cadence.in.faca.dev",
   );
+  String hostname = "";
 
-  void _openNumpad() {}
+  @override
+  void initState() {
+    super.initState();
+    // Start listening to changes
+    _hostnamecontroller.addListener(_saveHostName);hostname = _hostnamecontroller.text;
+  }
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is removed from the widget tree
+    // This also removes the _printLatestValue listener
+    _hostnamecontroller.dispose();
+    super.dispose();
+  }
+
+  void _saveHostName() {
+    log(hostname);
+    setState(() { hostname = _hostnamecontroller.text;});
+
+    // TODO: Save _hostnamecontroller.text into something that saves the state
+  }
+
+  void _openNumpad() {  
+    // TODO: open numpad impl
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,12 +94,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     // read card button
                     Padding(
                       padding: EdgeInsetsGeometry.only(bottom: 12),
-                      child: ReadCardButton(hostUrl: _hostnamecontroller.text),
+                      child: ReadCardButton(hostUrl: hostname),
                     ),
                     // Coin
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: AddCoinButton(hostUrl: _hostnamecontroller.text),
+                      child: AddCoinButton(hostUrl: hostname),
                     ),
                     // Hostname
                     Padding(
@@ -91,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 64),
-                      child: ServiceArea(),
+                      child: ServiceArea(hostUrl: hostname),
                     ),
                   ],
                 ),

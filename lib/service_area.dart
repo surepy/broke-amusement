@@ -2,7 +2,9 @@ import 'package:broke_amusement/service_buttons.dart';
 import 'package:flutter/material.dart';
 
 class ServiceArea extends StatefulWidget {
-  const ServiceArea({super.key});
+  final String hostUrl;
+
+  const ServiceArea({super.key, required this.hostUrl});
 
   @override
   State<StatefulWidget> createState() => _ServiceAreaState();
@@ -30,7 +32,7 @@ class _ServiceAreaState extends State<ServiceArea> {
             ),
           ),
         ),
-        ServiceButtons(unlocked: _unlocked),
+        ServiceButtons(hostUrl: widget.hostUrl, unlocked: _unlocked),
       ],
     );
   }

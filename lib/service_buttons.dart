@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ServiceButtons extends StatefulWidget {
-  const ServiceButtons({super.key, required this.unlocked});
-
+  const ServiceButtons({super.key, required this.hostUrl, required this.unlocked});
+  final String hostUrl;
   final bool unlocked;
 
   @override
@@ -10,9 +10,14 @@ class ServiceButtons extends StatefulWidget {
 }
 
 class _ServiceButtonsState extends State<ServiceButtons> {
-  void serviceButton() async {}
+  void serviceButton() async {
 
-  void testButton() async {}
+  }
+
+  void testButton() async {
+
+    
+  }
 
   @override
   Widget build(BuildContext context) {

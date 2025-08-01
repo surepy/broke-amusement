@@ -1,10 +1,11 @@
 import 'dart:convert';
+import 'dart:developer';
+import 'package:broke_amusement/net.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 
 class ReadCardButton extends StatefulWidget {
   final String hostUrl;
-
   const ReadCardButton({super.key, required this.hostUrl});
 
   @override
@@ -12,43 +13,63 @@ class ReadCardButton extends StatefulWidget {
 }
 
 class _ReadCardButtonState extends State<ReadCardButton> {
- 
+  bool reading = false;
 
-  void cardscan() async {
+  void cardscan(BuildContext context) async {
     var availability = await FlutterNfcKit.nfcAvailability;
     if (availability != NFCAvailability.available) {
-      print("you are not sigma!");
+      log("you are not sigma!");
       return;
     }
 
-    print("card scan start");
+    // this should not be possible, but it's a failsafe
+    if (reading) {
+      return;
+    }
+
+    log("card scan start");
+    setState(() { reading = true;});
 
     try {
       var tag = await FlutterNfcKit.poll(readIso18092: true);
 
-      print(jsonEncode(tag));
+      // TODO: don't print the idm on log
+      log(jsonEncode(tag));
 
       if (tag.type == NFCTagType.iso7816) {
         // idk what to do with this
       }
       if (tag.type == NFCTagType.mifare_classic) {
-        // option to virtualize a card?
+        // TODO: option to virtualize a card?
         await FlutterNfcKit.authenticateSector(0, keyA: "FFFFFFFFFFFF");
         var data = await FlutterNfcKit.readBlock(0); // read one block
         print(data);
       }
-      // FeliCa
+      // iso18092 = FeliCa = what we want
       if (tag.type == NFCTagType.iso18092) {
         // rename variable to a more sensible name
         var idm = tag.id;
         var pmm = tag.manufacturer;
+        
+        sendMessage(widget.hostUrl, 11321, PacketType.cardScan, idm);
       }
+
+      final cardReadMessage = SnackBar(
+        content: const Text('Card Read Succcessful!')
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(cardReadMessage);
+      }
+
     } catch (e) {
       //
     } finally {
       // Call finish() only once
       await FlutterNfcKit.finish();
     }
+
+    setState(() { reading = false; });
   }
 
   @override
@@ -62,9 +83,9 @@ class _ReadCardButtonState extends State<ReadCardButton> {
         // fromHeight use double.infinity as width and 40 is the height
         minimumSize: Size.fromHeight(175),
       ),
-      onPressed: cardscan,
+      onPressed: reading ? null : () => cardscan(context) ,
       child: Text(
-        "Read Card",
+        reading ? "Reading..." : "Read Card",
         style: TextStyle(
           fontWeight: FontWeight.w400,
           fontSize: 25,
