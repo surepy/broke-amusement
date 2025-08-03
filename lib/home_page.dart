@@ -46,24 +46,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _saveHostName() {
-    log(hostname);
     setState(() { hostname = _hostnamecontroller.text;});
-
+    
     // TODO: Save _hostnamecontroller.text into something that saves the state
   }
 
   void _openNumpad() {  
-    // TODO: open numpad impl
+    // TODO: open numpad impl (nami games)
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
@@ -76,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
           widget.title,
           style: TextStyle(
             fontWeight: FontWeight.w400,
-            fontSize: 18.0, // Adjust the font size here
+            fontSize: 18.0,
           ),
         ),
         centerTitle: true,

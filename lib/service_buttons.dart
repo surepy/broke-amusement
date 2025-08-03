@@ -1,3 +1,4 @@
+import 'package:broke_amusement/net.dart';
 import 'package:flutter/material.dart';
 
 class ServiceButtons extends StatefulWidget {
@@ -11,12 +12,11 @@ class ServiceButtons extends StatefulWidget {
 
 class _ServiceButtonsState extends State<ServiceButtons> {
   void serviceButton() async {
-
+    sendMessage(widget.hostUrl, 11321, PacketType.serviceButton, null);
   }
 
   void testButton() async {
-
-    
+    sendMessage(widget.hostUrl, 11321, PacketType.testButton, null);
   }
 
   @override

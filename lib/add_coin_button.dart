@@ -1,5 +1,11 @@
+import 'package:broke_amusement/net.dart';
 import 'package:flutter/material.dart';
 
+///
+/// Free Money Printer
+/// 
+/// Every time you press this button S*g* or K*n*mi loses a dollar (this is verified truth)
+///
 class AddCoinButton extends StatefulWidget {
   final String hostUrl;
 
@@ -10,7 +16,9 @@ class AddCoinButton extends StatefulWidget {
 }
 
 class _AddCoinButtonState extends State<AddCoinButton> {
-  void addcoin() async {}
+  void addcoin() async {
+    sendMessage(widget.hostUrl, 11321, PacketType.coinInput, null);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +28,6 @@ class _AddCoinButtonState extends State<AddCoinButton> {
           borderRadius: BorderRadiusGeometry.circular(28),
         ),
         backgroundColor: Theme.of(context).colorScheme.secondary,
-        // fromHeight use double.infinity as width and 40 is the height
         minimumSize: Size.fromHeight(125),
       ),
       onPressed: addcoin,

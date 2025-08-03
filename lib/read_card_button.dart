@@ -28,48 +28,68 @@ class _ReadCardButtonState extends State<ReadCardButton> {
     }
 
     log("card scan start");
-    setState(() { reading = true;});
+    setState(() {
+      reading = true;
+    });
 
     try {
       var tag = await FlutterNfcKit.poll(readIso18092: true);
 
-      // TODO: don't print the idm on log
-      log(jsonEncode(tag));
-
-      if (tag.type == NFCTagType.iso7816) {
-        // idk what to do with this
-      }
-      if (tag.type == NFCTagType.mifare_classic) {
-        // TODO: option to virtualize a card?
-        await FlutterNfcKit.authenticateSector(0, keyA: "FFFFFFFFFFFF");
-        var data = await FlutterNfcKit.readBlock(0); // read one block
-        print(data);
-      }
       // iso18092 = FeliCa = what we want
       if (tag.type == NFCTagType.iso18092) {
         // rename variable to a more sensible name
         var idm = tag.id;
-        var pmm = tag.manufacturer;
-        
-        sendMessage(widget.hostUrl, 11321, PacketType.cardScan, idm);
-      }
+        // unused
+        // var pmm = tag.manufacturer;
 
-      final cardReadMessage = SnackBar(
-        content: const Text('Card Read Succcessful!')
-      );
+        sendMessage(widget.hostUrl, 11321, PacketType.cardScan, idm);
+
+        final cardReadMessage = SnackBar(
+          content: const Text('Card Read Succcessful!'),
+        );
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(cardReadMessage);
+        }
+      } else {
+        // TODO: decide what I want to do with other card types that isn't felica
+        // I can "virtualize" a card by copying ac_pico's implementation
+        // (and preferred because people already use that impl)
+        // but eh....
+
+        // if (tag.type == NFCTagType.iso7816) {
+        if (tag.type == NFCTagType.mifare_classic) {
+          await FlutterNfcKit.authenticateSector(0, keyA: "FFFFFFFFFFFF");
+          // var data = await FlutterNfcKit.readBlock(0); // read one block
+        }
+
+        // for now just return that it's unsupported
+        final cardReadMessage = SnackBar(
+          // TODO: better color
+          backgroundColor: Colors.deepOrange,
+          content: const Text('Unsupported Card Type.'),
+        );
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(cardReadMessage);
+        }
+      }
+    } catch (e) {
+      // TODO better error handling
+      log(e.toString());
+      
+      final cardReadMessage = SnackBar(content: const Text('Unknown Error'));
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(cardReadMessage);
       }
-
-    } catch (e) {
-      //
     } finally {
-      // Call finish() only once
       await FlutterNfcKit.finish();
     }
 
-    setState(() { reading = false; });
+    setState(() {
+      reading = false;
+    });
   }
 
   @override
@@ -83,7 +103,7 @@ class _ReadCardButtonState extends State<ReadCardButton> {
         // fromHeight use double.infinity as width and 40 is the height
         minimumSize: Size.fromHeight(175),
       ),
-      onPressed: reading ? null : () => cardscan(context) ,
+      onPressed: reading ? null : () => cardscan(context),
       child: Text(
         reading ? "Reading..." : "Read Card",
         style: TextStyle(

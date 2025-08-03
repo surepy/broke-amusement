@@ -1,6 +1,8 @@
 import 'package:broke_amusement/service_buttons.dart';
 import 'package:flutter/material.dart';
 
+
+/// Area with 2 standard service/test buttons and lock
 class ServiceArea extends StatefulWidget {
   final String hostUrl;
 
