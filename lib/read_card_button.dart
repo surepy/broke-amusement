@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:broke_amusement/net.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 
 class ReadCardButton extends StatefulWidget {
@@ -33,16 +34,24 @@ class _ReadCardButtonState extends State<ReadCardButton> {
     });
 
     try {
-      var tag = await FlutterNfcKit.poll(readIso18092: true);
+      var tag = await FlutterNfcKit.poll(
+        androidCheckNDEF: false,
+        readIso18092: true,
+      );
 
       // iso18092 = FeliCa = what we want
       if (tag.type == NFCTagType.iso18092) {
-        // rename variable to a more sensible name
+        // tag.id = idm in this context
         var idm = tag.id;
         // unused
         // var pmm = tag.manufacturer;
 
         sendMessage(widget.hostUrl, 11321, PacketType.cardScan, idm);
+
+        // I tried if 0A04${idm} and 06 and all the possible other commands and see
+        // if they dismissed apple pay's "hold near reader" screen, they do not.
+        // it was worth a try
+        // - sleepy [8/6/2025 4:53:04 AM]
 
         final cardReadMessage = SnackBar(
           content: const Text('Card Read Succcessful!'),
@@ -53,15 +62,26 @@ class _ReadCardButtonState extends State<ReadCardButton> {
         }
       } else {
         // TODO: decide what I want to do with other card types that isn't felica
-        // I can "virtualize" a card by copying ac_pico's implementation
+        // I can "virtualize" a card by copying aic_pico's implementation
         // (and preferred because people already use that impl)
-        // but eh....
+        // but eh.... it's not that great
 
-        // if (tag.type == NFCTagType.iso7816) {
-        if (tag.type == NFCTagType.mifare_classic) {
-          await FlutterNfcKit.authenticateSector(0, keyA: "FFFFFFFFFFFF");
-          // var data = await FlutterNfcKit.readBlock(0); // read one block
-        }
+        log(jsonEncode(tag));
+
+        if (tag.type == NFCTagType.iso7816) {
+          // Visa (apparently)
+          var response = await FlutterNfcKit.transceive(
+            "00A4040007A0000000031010",
+          );
+          if (response.length > 4) {
+            // lol
+            log("Why the actual fuck are you scanning a credit card here");
+          }
+        } 
+        // else if (tag.type == NFCTagType.mifare_classic) {
+        //  await FlutterNfcKit.authenticateSector(0, keyA: "FFFFFFFFFFFF");
+        //  var data = await FlutterNfcKit.readBlock(0); // read one block
+        //}
 
         // for now just return that it's unsupported
         final cardReadMessage = SnackBar(
@@ -77,7 +97,7 @@ class _ReadCardButtonState extends State<ReadCardButton> {
     } catch (e) {
       // TODO better error handling
       log(e.toString());
-      
+
       final cardReadMessage = SnackBar(content: const Text('Unknown Error'));
 
       if (context.mounted) {
