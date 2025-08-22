@@ -5,6 +5,7 @@ import 'package:broke_amusement/add_coin_button.dart';
 import 'package:broke_amusement/read_card_button.dart';
 import 'package:broke_amusement/service_area.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -25,16 +26,15 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   // _hostnamecontroller.text
-  final TextEditingController _hostnamecontroller = TextEditingController(
-    text: "cadence.in.faca.dev",
-  );
+  final TextEditingController _hostnamecontroller = TextEditingController();
   String hostname = "";
 
   @override
   void initState() {
     super.initState();
     // Start listening to changes
-    _hostnamecontroller.addListener(_saveHostName);hostname = _hostnamecontroller.text;
+    _hostnamecontroller.addListener(_saveHostName);
+    _loadHostname();
   }
 
   @override
@@ -45,10 +45,20 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void _saveHostName() {
+  void _saveHostName() async {
     setState(() { hostname = _hostnamecontroller.text;});
     
-    // TODO: Save _hostnamecontroller.text into something that saves the state
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('hostname', _hostnamecontroller.text);
+  }
+
+  void _loadHostname() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedHostname = prefs.getString('hostname') ?? '';
+    setState(() {
+      hostname = savedHostname;
+      _hostnamecontroller.text = savedHostname;
+    });
   }
 
   void _openNumpad() {  
